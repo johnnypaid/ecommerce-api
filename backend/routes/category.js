@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const { Category } = require('../models/category');
 
 const api = process.env.API_URL
@@ -7,37 +8,25 @@ const api = process.env.API_URL
 router.get('/', async (req, res) => {
     const categoryList = await Category.find();
 
-    if(!categoryList) {
-        res.status(500).json({success: false});
-    }
+    if(!categoryList) return res.status(404).json({success: false, message: 'No category list found.'});
 
-    res.status(200).send(categoryList);
+    res.json({success: true, data: categoryList});
 });
 
 router.get('/:id', async (req, res) => {
-
     try {
         const category = await Category.findById({_id: req.params.id});
 
-        if(!category) {
-            res.status(500).json({
-                success: false,
-                message: 'No category with such id..'
-            })
-        }
+        if(!category) return res.status(500).json({success: false, message: 'No category with such id..'});
 
-        res.send(category);
+        res.json({success: true, data: category});
 
     } catch (err) {
-        return res.status(404).json({
-            success: false,
-            error: err
-        })
+        return res.status(404).json({success: false, error: err});
     }
 });
 
 router.post('/', async (req, res) => {
-
     let searchCategory = await Category.findOne({name: req.body.name})
     if (searchCategory) return res.status(400).json({success: false, message: 'Category already exist!'})
 
@@ -50,14 +39,20 @@ router.post('/', async (req, res) => {
     
         category = await category.save();
 
-        res.send(category);
+        if(!category) return res.status(500).json({success: false, message: 'Could not create category'})
+
+        res.json({success: true, data: category});
         
     } catch (err) {
-        return res.status(400).json({success: false, error: err});
+        return res.status(500).json({success: false, error: err});
     }
 });
 
 router.put('/:id', async(req, res) => {
+    if(!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json({success: false, message: 'Invalid product id!'});
+    }
+
     try {
         const category = await Category.findByIdAndUpdate(
             req.params.id,
@@ -70,16 +65,20 @@ router.put('/:id', async(req, res) => {
     
         if(!category) return res.status(400).send('Category could not be created!');
     
-        res.send(category);
+        res.json({success: true, data: category});
 
     } catch (err) {
-        return res.status(400).json({success: false, error: err})
+        return res.status(500).json({success: false, error: err})
     }
 });
 
 
 // using .then .catch
 router.delete('/:id', (req, res) => {
+    if(!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json({success: false, message: 'Invalid category id!'});
+    }
+
     Category.findByIdAndRemove(req.params.id).then(category => {
         if(category) {
             return res.status(200).json({success: true, message: 'The category has been deleted!'})
@@ -87,7 +86,7 @@ router.delete('/:id', (req, res) => {
             return res.status(404).json({success: false, message: 'Category not found...'})
         }
     }).catch(err => {
-        return res.status(400).json({success: false, error: err })
+        return res.status(500).json({success: false, error: err })
     });
 });
 
