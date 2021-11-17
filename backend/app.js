@@ -3,7 +3,8 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const app = express();
 const cors = require('cors');
-
+const authJwt = require('./helpers/auth');
+const errorHandler = require('./helpers/error-handler');
 require('dotenv').config();
 
 app.use(cors());
@@ -12,15 +13,19 @@ app.options('*', cors());
 // Middlewares
 app.use(express.json());
 app.use(morgan('tiny'));
+app.use(authJwt());
+app.use(errorHandler);
 
 // Routes
 const product = require('./routes/product');
 const category = require('./routes/category');
+const user = require('./routes/user');
 
 const api = process.env.API_URL
 
 app.use(`/${api}/products`, product);
 app.use(`/${api}/category`, category);
+app.use(`/${api}/users`, user);
 
 
 // DB Connection

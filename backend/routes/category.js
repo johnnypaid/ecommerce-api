@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
-const { Category } = require('../models/category');
+const {Category} = require('../models/category');
 
 const api = process.env.API_URL
 
