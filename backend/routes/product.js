@@ -113,7 +113,9 @@ router.delete('/:id', async (req, res) => {
     try {
         const deleteProduct = await Product.findByIdAndRemove(req.params.id);   
 
-        if(!deleteProduct) return res.status(404).json({success: false, message: 'Can not fint product to delete.'});
+        if(!deleteProduct) return res.status(404).json({success: false, message: 'Can not find product to delete.'});
+
+        res.send({success: true, message: 'Product deleted successfully.'});
 
     } catch (err) {
         res.status(500).json({success: false, error: err})
@@ -133,7 +135,7 @@ router.get('/get/count', async (req, res) => {
                 });
         } 
 
-        res.send({count: productCount});
+        res.send({success: true, count: productCount});
 
     } catch (err) {
         res.status(500).json({success: false, error: err.message})

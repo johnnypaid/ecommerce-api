@@ -73,7 +73,8 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign(
             {
                 userId: user.id,
-                userName: user.name
+                userName: user.name,
+                isAdmin: user.isAdmin
             },
             secret,
             {expiresIn: '1d'}
@@ -82,6 +83,75 @@ router.post('/login', async (req, res) => {
     } else {
         return res.status(400).json({success: false, message: 'Invalid user.'});
     }
+})
+
+router.put('/:id', async (req, res) => {
+    if(!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json({success: false, message: 'Invalid user id!'});
+    }
+
+    try {
+        const updateUser = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                name: req.body.name,
+                email: req.body.email,
+                password: bcrypt.hashSync(req.body.password, 10),
+                phone: req.body.phone,
+                isAdmin: req.body.isAdmin,
+                street: req.body.street,
+                apartment: req.body.apartment,
+                city: req.body.city,
+                zip: req.body.zip,
+                country: req.body.country
+            }, {new: true}
+        ).select('-password');
+
+        if(!updateUser) return res.status(404).json({success: false, message: 'Can not find user to update.'})
+
+        res.json({success: true, data: updateUser});
+
+    } catch (err) {
+        res.status(500).json({success: false, error: err});
+    }
+})
+
+router.delete('/:id', async (req, res) => {
+    if(!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json({success: false, message: 'Invalid product id!'});
+    }
+    
+    try {
+        const deleteUser = await User.findByIdAndRemove(req.params.id);   
+
+        if(!deleteUser) return res.status(404).json({success: false, message: 'Can not find product to delete.'});
+
+        res.send({success: true, message: 'User deleted successfully.'});
+
+    } catch (err) {
+        res.status(500).json({success: false, error: err})
+    }
+})
+
+// statistic
+router.get('/get/count', async (req, res) => {
+    try {
+        const userCount = await User.countDocuments({});
+
+        if(!userCount) {
+            return res.status(500).json(
+                {
+                    success: false, 
+                    message: 'Cannot find any user.'
+                });
+        } 
+
+        res.send({success: true, count: userCount});
+
+    } catch (err) {
+        res.status(500).json({success: false, error: err.message})
+    }
+    
 })
 
 module.exports = router;
