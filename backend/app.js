@@ -19,12 +19,14 @@ app.use(errorHandler);
 // Routes
 const product = require('./routes/product');
 const category = require('./routes/category');
+const orders = require('./routes/order');
 const user = require('./routes/user');
 
 const api = process.env.API_URL
 
 app.use(`/${api}/products`, product);
 app.use(`/${api}/category`, category);
+app.use(`/${api}/orders`, orders);
 app.use(`/${api}/users`, user);
 
 
